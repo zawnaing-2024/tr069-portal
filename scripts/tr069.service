@@ -1,0 +1,21 @@
+[Unit]
+Description=Django TR-069 Portal
+After=network.target
+
+[Service]
+User=tr069
+Group=tr069
+WorkingDirectory=/opt/tr069/app
+EnvironmentFile=/opt/tr069/app/.env
+
+ExecStart=/opt/tr069/app/venv/bin/gunicorn \
+          --workers 3 \
+          --pid /run/tr069-gunicorn.pid \
+          --bind unix:/opt/tr069/tr069.sock \
+          tr069_portal.wsgi:application
+
+ExecReload=/bin/kill -s HUP $MAINPID
+Restart=always
+
+[Install]
+WantedBy=multi-user.target 
