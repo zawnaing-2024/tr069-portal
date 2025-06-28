@@ -18,7 +18,7 @@ REPO_URL="https://example.com/your-git-repo.git"  # <-- change me
 DB_NAME="tr069"
 DB_USER="tr069_app"
 DB_PASS="tr069_pass"
-DJANGO_SECRET_KEY="$(tr -dc A-Za-z0-9 </dev/urandom | head -c 64)"
+DJANGO_SECRET_KEY="$(tr -dc A-Za-z0-9 </dev/urandom | head -c 64 || true)"
 
 # 1. Update system and install packages
 apt update && apt upgrade -y

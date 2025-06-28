@@ -2,6 +2,78 @@
 {% block title %}Admin Dashboard{% endblock %}
 
 {% block content %}
-<h1>Welcome, Admin</h1>
-<p>This will later show detailed statistics.</p>
+<div class="row">
+    <div class="col-md-12">
+        <h1>Welcome, Admin</h1>
+        <p class="text-muted">System overview and management tools</p>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <h5 class="card-title">Total ONUs</h5>
+                <h2>{{ total_onus }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <h5 class="card-title">Online</h5>
+                <h2>{{ online_onus }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-danger">
+            <div class="card-body">
+                <h5 class="card-title">Offline</h5>
+                <h2>{{ offline_onus }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-info">
+            <div class="card-body">
+                <h5 class="card-title">Huawei</h5>
+                <h2>{{ huawei_count }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <a href="{% url 'onu_add' %}" class="btn btn-primary mb-2">Add New ONU</a><br>
+                <a href="{% url 'customer_add' %}" class="btn btn-success mb-2">Add New Customer</a><br>
+                <a href="{% url 'onu_list' %}" class="btn btn-info">Manage ONUs</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>Vendor Breakdown</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-2">
+                    <strong>Huawei:</strong> {{ huawei_count }} ONUs
+                </div>
+                <div class="mb-2">
+                    <strong>ZTE:</strong> {{ zte_count }} ONUs
+                </div>
+                <div class="mb-2">
+                    <strong>Other:</strong> {{ other_count }} ONUs
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %} 

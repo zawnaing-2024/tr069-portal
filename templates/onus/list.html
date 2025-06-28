@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+{% block title %}ONU Management{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>ONU Management</h1>
+    {% if user.is_superuser or user.groups.all|length > 0 %}
+    <a href="{% url 'onu_add' %}" class="btn btn-primary">Add New ONU</a>
+    {% endif %}
+</div>
+
+<!-- Search and Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <input type="text" class="form-control" name="search" placeholder="Search by Serial, MAC, IP, Model" value="{{ search }}">
+            </div>
+            <div class="col-md-3">
+                <select name="vendor" class="form-control">
+                    <option value="">All Vendors</option>
+                    <option value="Huawei" {% if vendor == 'Huawei' %}selected{% endif %}>Huawei</option>
+                    <option value="ZTE" {% if vendor == 'ZTE' %}selected{% endif %}>ZTE</option>
+                    <option value="Other" {% if vendor == 'Other' %}selected{% endif %}>Other</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select name="status" class="form-control">
+                    <option value="">All Status</option>
+                    <option value="online" {% if status == 'online' %}selected{% endif %}>Online</option>
+                    <option value="offline" {% if status == 'offline' %}selected{% endif %}>Offline</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-outline-primary">Filter</button>
+                <a href="{% url 'onu_list' %}" class="btn btn-outline-secondary">Clear</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ONU Table -->
+<div class="card">
+    <div class="card-body">
+        {% if page_obj %}
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Serial Number</th>
+                        <th>MAC Address</th>
+                        <th>IP Address</th>
+                        <th>Vendor</th>
+                        <th>Model</th>
+                        <th>Status</th>
+                        <th>Customer</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for onu in page_obj %}
+                    <tr>
+                        <td><a href="{% url 'onu_detail' onu.pk %}">{{ onu.serial_number }}</a></td>
+                        <td>{{ onu.mac_address }}</td>
+                        <td>{{ onu.ip_address|default:"-" }}</td>
+                        <td>{{ onu.vendor }}</td>
+                        <td>{{ onu.model_name|default:"-" }}</td>
+                        <td>
+                            {% if onu.online %}
+                                <span class="badge bg-success">Online</span>
+                            {% else %}
+                                <span class="badge bg-danger">Offline</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ onu.customer.name|default:"-" }}</td>
+                        <td>
+                            <a href="{% url 'onu_detail' onu.pk %}" class="btn btn-sm btn-outline-info">View</a>
+                            {% if user.is_superuser or user.groups.all|length > 0 %}
+                            <a href="{% url 'onu_edit' onu.pk %}" class="btn btn-sm btn-outline-warning">Edit</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?{% if search %}search={{ search }}&{% endif %}{% if vendor %}vendor={{ vendor }}&{% endif %}{% if status %}status={{ status }}&{% endif %}page={{ page_obj.previous_page_number }}">Previous</a>
+                    </li>
+                {% endif %}
+                
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                    {% else %}
+                        <li class="page-item">
+                            <a class="page-link" href="?{% if search %}search={{ search }}&{% endif %}{% if vendor %}vendor={{ vendor }}&{% endif %}{% if status %}status={{ status }}&{% endif %}page={{ num }}">{{ num }}</a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?{% if search %}search={{ search }}&{% endif %}{% if vendor %}vendor={{ vendor }}&{% endif %}{% if status %}status={{ status }}&{% endif %}page={{ page_obj.next_page_number }}">Next</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+        {% else %}
+        <div class="text-center py-4">
+            <p>No ONUs found.</p>
+            {% if user.is_superuser or user.groups.all|length > 0 %}
+            <a href="{% url 'onu_add' %}" class="btn btn-primary">Add First ONU</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 
