@@ -7,34 +7,28 @@ VENV="$APP_DIR/venv"
 PY="$VENV/bin/python"
 PIP="$VENV/bin/pip"
 
-# 1. Update code
-echo "► Pulling latest code…"
+echo "► Pulling latest code..."
 git -C "$APP_DIR" fetch --all
 LATEST_COMMIT=$(git -C "$APP_DIR" rev-parse origin/main)
 git -C "$APP_DIR" checkout "$LATEST_COMMIT"
 
 echo "Current version: $LATEST_COMMIT"
 
-# 2. Install any new deps
-echo "► Installing Python packages…"
+echo "► Installing Python packages..."
 "$PIP" install -r "$APP_DIR/requirements.txt"
 
-# 3. Database migrations
-echo "► Applying migrations…"
+echo "► Applying migrations..."
 "$PY" "$APP_DIR/manage.py" migrate --noinput
 
-# 4. Collect static
+echo "► Collecting static files..."
 "$PY" "$APP_DIR/manage.py" collectstatic --noinput
 
-# 5. Reload gunicorn via systemd (zero downtime)
-SYSTEMD_UNIT="tr069"
-
-echo "► Reloading Gunicorn…"
-if systemctl is-active --quiet "$SYSTEMD_UNIT"; then
-  systemctl reload "$SYSTEMD_UNIT"
+echo "► Reloading Gunicorn..."
+if systemctl is-active --quiet tr069; then
+  systemctl reload tr069
 else
-  echo "Gunicorn not running, starting service…"
-  systemctl start "$SYSTEMD_UNIT"
+  echo "Gunicorn not running, starting service..."
+  systemctl start tr069
 fi
 
 echo "✓ Deploy complete" 
