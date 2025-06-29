@@ -1,0 +1,230 @@
+{% extends 'base.html' %}
+{% block title %}TR-069 ACS Dashboard{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>TR-069 ACS Dashboard</h1>
+    <div class="d-flex gap-2">
+        <button class="btn btn-outline-primary" onclick="refreshStatus()">
+            <i class="fas fa-sync-alt"></i> Refresh
+        </button>
+        <button class="btn btn-info" onclick="toggleAutoRefresh()">
+            <i class="fas fa-clock"></i> Auto-refresh: <span id="autoRefreshStatus">OFF</span>
+        </button>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4>{{ total_devices }}</h4>
+                        <p class="mb-0">Total Devices</p>
+                    </div>
+                    <i class="fas fa-network-wired fa-2x"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 id="onlineCount">{{ online_devices }}</h4>
+                        <p class="mb-0">Online</p>
+                    </div>
+                    <i class="fas fa-check-circle fa-2x"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-danger text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 id="offlineCount">{{ offline_devices }}</h4>
+                        <p class="mb-0">Offline</p>
+                    </div>
+                    <i class="fas fa-times-circle fa-2x"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4>{{ recent_discoveries }}</h4>
+                        <p class="mb-0">New Today</p>
+                    </div>
+                    <i class="fas fa-plus-circle fa-2x"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- How to Configure ONUs -->
+<div class="alert alert-info" role="alert">
+    <h5 class="alert-heading"><i class="fas fa-info-circle"></i> TR-069 Server Configuration</h5>
+    <p>Configure your ONUs to connect to this TR-069 ACS server:</p>
+    <ul class="mb-0">
+        <li><strong>ACS URL:</strong> <code>http://{{ request.get_host }}/acs/tr069/</code></li>
+        <li><strong>ACS Username:</strong> <code>admin</code> (optional)</li>
+        <li><strong>ACS Password:</strong> <code>admin</code> (optional)</li>
+        <li><strong>Periodic Inform Interval:</strong> <code>300</code> seconds (5 minutes)</li>
+    </ul>
+    <hr>
+    <p class="mb-0">Once configured, devices will automatically appear in the "Auto-Discovered Devices" section below when they connect.</p>
+</div>
+
+<!-- Recent Devices -->
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between">
+                <h5>Recently Discovered Devices</h5>
+                <a href="{% url 'acs:discovered_devices' %}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body">
+                {% if recent_devices %}
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Device ID</th>
+                                <th>Manufacturer</th>
+                                <th>Model</th>
+                                <th>IP Address</th>
+                                <th>Status</th>
+                                <th>Last Contact</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recentDevicesTable">
+                            {% for device in recent_devices %}
+                            <tr data-device-id="{{ device.id }}">
+                                <td>
+                                    <a href="{% url 'acs:device_detail' device.id %}">{{ device.device_id }}</a>
+                                </td>
+                                <td>{{ device.manufacturer|default:"-" }}</td>
+                                <td>{{ device.model_name|default:"-" }}</td>
+                                <td>{{ device.ip_address }}</td>
+                                <td>
+                                    <span class="badge bg-{% if device.is_online %}success{% else %}danger{% endif %} device-status">
+                                        {% if device.is_online %}Online{% else %}Offline{% endif %}
+                                    </span>
+                                </td>
+                                <td>{{ device.last_inform|timesince }} ago</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-network-wired fa-3x text-muted mb-3"></i>
+                    <h5>No devices discovered yet</h5>
+                    <p class="text-muted">Configure your ONUs with the TR-069 ACS URL above to see them appear here automatically.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <!-- Manufacturer Distribution -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>Device Manufacturers</h5>
+            </div>
+            <div class="card-body">
+                {% if vendor_stats %}
+                    {% for vendor in vendor_stats %}
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>{{ vendor.manufacturer|default:"Unknown" }}</span>
+                        <span class="badge bg-secondary">{{ vendor.count }}</span>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted mb-0">No devices to display</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Active Sessions -->
+        <div class="card">
+            <div class="card-header">
+                <h5>Active Sessions</h5>
+            </div>
+            <div class="card-body">
+                <h3 class="text-center">{{ active_sessions }}</h3>
+                <p class="text-center text-muted mb-0">TR-069 connections</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let autoRefresh = false;
+let refreshInterval;
+
+function refreshStatus() {
+    fetch('{% url "acs:real_time_status" %}')
+        .then(response => response.json())
+        .then(data => {
+            updateDeviceStatus(data.devices);
+            updateCounters(data.devices);
+        })
+        .catch(error => console.error('Error fetching status:', error));
+}
+
+function updateDeviceStatus(devices) {
+    devices.forEach(device => {
+        const row = document.querySelector(`tr[data-device-id="${device.id}"]`);
+        if (row) {
+            const statusBadge = row.querySelector('.device-status');
+            if (statusBadge) {
+                statusBadge.textContent = device.is_online ? 'Online' : 'Offline';
+                statusBadge.className = `badge bg-${device.is_online ? 'success' : 'danger'} device-status`;
+            }
+        }
+    });
+}
+
+function updateCounters(devices) {
+    const online = devices.filter(d => d.is_online).length;
+    const offline = devices.length - online;
+    
+    document.getElementById('onlineCount').textContent = online;
+    document.getElementById('offlineCount').textContent = offline;
+}
+
+function toggleAutoRefresh() {
+    autoRefresh = !autoRefresh;
+    const statusSpan = document.getElementById('autoRefreshStatus');
+    
+    if (autoRefresh) {
+        statusSpan.textContent = 'ON';
+        refreshInterval = setInterval(refreshStatus, 30000); // Refresh every 30 seconds
+        refreshStatus(); // Initial refresh
+    } else {
+        statusSpan.textContent = 'OFF';
+        if (refreshInterval) {
+            clearInterval(refreshInterval);
+        }
+    }
+}
+
+// Auto-refresh on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Optional: Start auto-refresh by default
+    // toggleAutoRefresh();
+});
+</script>
+{% endblock %} 
