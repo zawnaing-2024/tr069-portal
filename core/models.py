@@ -50,6 +50,10 @@ class ONU(models.Model):
     model_name = models.CharField(max_length=64, blank=True)
     firmware_version = models.CharField(max_length=64, blank=True)
 
+    # ONU Device Credentials
+    username = models.CharField(max_length=64, blank=True, help_text="ONU admin username")
+    password = models.CharField(max_length=128, blank=True, help_text="ONU admin password")
+
     customer = models.ForeignKey(
         CustomerInfo, related_name="onus", on_delete=models.SET_NULL, null=True, blank=True
     )

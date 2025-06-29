@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+{% block title %}{{ onu.serial_number }} - ONU Details{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>ONU Details</h1>
+    <div>
+        {% if user.is_superuser or user.groups.all|length > 0 %}
+        <a href="{% url 'onu_edit' onu.pk %}" class="btn btn-warning">Edit ONU</a>
+        {% endif %}
+        <a href="{% url 'onu_list' %}" class="btn btn-secondary">Back to List</a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5>Basic Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>Serial Number:</strong></div>
+                    <div class="col-sm-8">{{ onu.serial_number }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>MAC Address:</strong></div>
+                    <div class="col-sm-8">{{ onu.mac_address }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>IP Address:</strong></div>
+                    <div class="col-sm-8">{{ onu.ip_address|default:"Not assigned" }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>Status:</strong></div>
+                    <div class="col-sm-8">
+                        {% if onu.online %}
+                            <span class="badge bg-success">Online</span>
+                        {% else %}
+                            <span class="badge bg-danger">Offline</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>Vendor:</strong></div>
+                    <div class="col-sm-8">{{ onu.vendor }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>Model:</strong></div>
+                    <div class="col-sm-8">{{ onu.model_name|default:"Not specified" }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>Firmware Version:</strong></div>
+                    <div class="col-sm-8">{{ onu.firmware_version|default:"Not specified" }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>Last Inform:</strong></div>
+                    <div class="col-sm-8">{{ onu.last_inform|default:"Never" }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5>Device Credentials</h5>
+            </div>
+            <div class="card-body">
+                {% if user.is_superuser or user.groups.filter|length > 0 %}
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>Username:</strong></div>
+                    <div class="col-sm-8">{{ onu.username|default:"Not set" }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>Password:</strong></div>
+                    <div class="col-sm-8">
+                        {% if onu.password %}
+                            <span class="password-field">••••••••</span>
+                            <button class="btn btn-sm btn-outline-secondary ms-2" onclick="togglePassword()">Show</button>
+                            <span class="password-actual d-none">{{ onu.password }}</span>
+                        {% else %}
+                            Not set
+                        {% endif %}
+                    </div>
+                </div>
+                {% else %}
+                <p class="text-muted">Access restricted - Admin/Operator privileges required</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>Optical Power</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-sm-6"><strong>RX Power:</strong></div>
+                    <div class="col-sm-6">
+                        {% if onu.rx_power %}
+                            {{ onu.rx_power }} dBm
+                        {% else %}
+                            Not available
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-6"><strong>TX Power:</strong></div>
+                    <div class="col-sm-6">
+                        {% if onu.tx_power %}
+                            {{ onu.tx_power }} dBm
+                        {% else %}
+                            Not available
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if onu.customer %}
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5>Customer Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-2">
+                    <div class="col-sm-5"><strong>Name:</strong></div>
+                    <div class="col-sm-7">{{ onu.customer.name }}</div>
+                </div>
+                {% if onu.customer.phone %}
+                <div class="row mb-2">
+                    <div class="col-sm-5"><strong>Phone:</strong></div>
+                    <div class="col-sm-7">{{ onu.customer.phone }}</div>
+                </div>
+                {% endif %}
+                {% if onu.customer.email %}
+                <div class="row mb-2">
+                    <div class="col-sm-5"><strong>Email:</strong></div>
+                    <div class="col-sm-7">{{ onu.customer.email }}</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5>Timestamps</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-2">
+                    <div class="col-sm-5"><strong>Created:</strong></div>
+                    <div class="col-sm-7">{{ onu.created_at|date:"M d, Y H:i" }}</div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-5"><strong>Updated:</strong></div>
+                    <div class="col-sm-7">{{ onu.updated_at|date:"M d, Y H:i" }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function togglePassword() {
+    const passwordField = document.querySelector('.password-field');
+    const passwordActual = document.querySelector('.password-actual');
+    const button = event.target;
+    
+    if (passwordActual.classList.contains('d-none')) {
+        passwordField.classList.add('d-none');
+        passwordActual.classList.remove('d-none');
+        button.textContent = 'Hide';
+    } else {
+        passwordField.classList.remove('d-none');
+        passwordActual.classList.add('d-none');
+        button.textContent = 'Show';
+    }
+}
+</script>
+{% endblock %} 

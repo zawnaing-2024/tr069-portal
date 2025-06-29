@@ -10,7 +10,7 @@ class ONUForm(forms.ModelForm):
         fields = [
             'serial_number', 'mac_address', 'ip_address',
             'vendor', 'model_name', 'firmware_version',
-            'customer', 'online', 'rx_power', 'tx_power'
+            'username', 'password', 'customer', 'online', 'rx_power', 'tx_power'
         ]
         widgets = {
             'serial_number': forms.TextInput(attrs={'class': 'form-control'}),
@@ -19,6 +19,8 @@ class ONUForm(forms.ModelForm):
             'vendor': forms.Select(attrs={'class': 'form-control'}),
             'model_name': forms.TextInput(attrs={'class': 'form-control'}),
             'firmware_version': forms.TextInput(attrs={'class': 'form-control'}),
+            'username': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'ONU admin username'}),
+            'password': forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'ONU admin password'}),
             'customer': forms.Select(attrs={'class': 'form-control'}),
             'online': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'rx_power': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),

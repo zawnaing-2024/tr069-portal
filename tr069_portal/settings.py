@@ -77,17 +77,25 @@ WSGI_APPLICATION = 'tr069_portal.wsgi.application'
 # Database
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': env('MYSQL_DATABASE', default='tr069'),
-        'USER': env('MYSQL_USER', default='tr069_app'),
-        'PASSWORD': env('MYSQL_PASSWORD', default='tr069_pass'),
-        'HOST': env('MYSQL_HOST', default='localhost'),
-        'PORT': env('MYSQL_PORT', default='3306'),
-        'OPTIONS': {
-            'charset': 'utf8mb4',
-        },
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+# Uncomment below for MySQL production setup
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': env('MYSQL_DATABASE', default='tr069'),
+#         'USER': env('MYSQL_USER', default='tr069_app'),
+#         'PASSWORD': env('MYSQL_PASSWORD', default='tr069_pass'),
+#         'HOST': env('MYSQL_HOST', default='localhost'),
+#         'PORT': env('MYSQL_PORT', default='3306'),
+#         'OPTIONS': {
+#             'charset': 'utf8mb4',
+#         },
+#     }
+# }
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
