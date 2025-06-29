@@ -19,4 +19,6 @@ urlpatterns = [
     # Customer Management
     path('customers/', core_views.customer_list, name='customer_list'),
     path('customers/add/', core_views.customer_add, name='customer_add'),
+    # TR-069 ACS
+    path('acs/', include('acs.urls')),
 ] 
